@@ -6,7 +6,7 @@ import { Clock, Gauge, ArrowLeft } from "lucide-react";
 const circuitData: Record<string, { name: string; location: string }> = {
   zwolle: { name: "Zwolle", location: "Zwolle, Nederland" },
   lelystad: { name: "Lelystad", location: "Lelystad, Nederland" },
-  venlo: { name: "Venlo", location: "Venlo, Nederland" },
+  venray: { name: "Venray", location: "Venray, Nederland" },
 };
 
 export function CircuitDetailPage() {

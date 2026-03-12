@@ -35,8 +35,8 @@ export function AgendaPage() {
     },
     {
       id: "3",
-      title: "Venlo Training",
-      circuit: "Venlo",
+      title: "Venray Training",
+      circuit: "Venray",
       date: "2026-03-29",
       time: "09:00",
       type: "practice",

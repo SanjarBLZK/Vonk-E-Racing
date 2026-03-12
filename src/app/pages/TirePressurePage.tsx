@@ -10,7 +10,7 @@ import { Badge } from "../components/ui/badge";
 const circuitData: Record<string, { name: string }> = {
   zwolle: { name: "Zwolle" },
   lelystad: { name: "Lelystad" },
-  venlo: { name: "Venlo" },
+  venray: { name: "Venray" },
 };
 
 interface TirePressure {

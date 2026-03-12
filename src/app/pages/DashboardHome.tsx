@@ -13,7 +13,7 @@ export function DashboardHome() {
   const recentRaces = [
     { circuit: "Zwolle", date: "05-03-2026", bestLap: "42.3s" },
     { circuit: "Lelystad", date: "28-02-2026", bestLap: "38.7s" },
-    { circuit: "Venlo", date: "15-02-2026", bestLap: "45.1s" },
+    { circuit: "Venray", date: "15-02-2026", bestLap: "45.1s" },
   ];
 
   return (

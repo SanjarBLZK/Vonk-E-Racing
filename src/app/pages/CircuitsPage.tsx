@@ -9,7 +9,7 @@ const circuits = [
     location: "Zwolle, Nederland",
     totalRaces: 4,
     bestLap: "42.3s",
-    image: "https://www.kartcentrumzwolle.nl/assets/Uploads/kartcentrum-zwolle-v3.jpeg",
+    image: "https://i.imgur.com/zZTd4lG.jpeg",
   },
   {
     id: "lelystad",
@@ -17,15 +17,15 @@ const circuits = [
     location: "Lelystad, Nederland",
     totalRaces: 5,
     bestLap: "38.7s",
-    image: "https://www.kartcentrumlelystad.nl/assets/Uploads/Kartcentrum-Lelystad-v2.jpg",
+    image: "https://imgur.com/fAQ1d9q.jpeg",
   },
   {
-    id: "venlo",
-    name: "Venlo",
-    location: "Venlo, Nederland",
+    id: "venray",
+    name: "Venray",
+    location: "Venray, Nederland",
     totalRaces: 3,
     bestLap: "45.1s",
-    image: "https://www.racewayvenray.com/crop/765x400x0x82/media/2023-03/RWV-Circuit-luchtfoto-5-002.webp",
+    image: "https://imgur.com/bxM9I1s.jpg",
   },
 ];
 

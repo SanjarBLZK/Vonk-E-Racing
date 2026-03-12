@@ -18,7 +18,7 @@ interface LapTime {
 const circuitData: Record<string, { name: string }> = {
   zwolle: { name: "Zwolle" },
   lelystad: { name: "Lelystad" },
-  venlo: { name: "Venlo" },
+  venray: { name: "Venray" },
 };
 
 export function LapTimesPage() {
