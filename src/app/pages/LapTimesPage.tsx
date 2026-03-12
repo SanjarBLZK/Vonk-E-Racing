@@ -158,7 +158,7 @@ export function LapTimesPage() {
               />
             </div>
             <div className="flex items-end">
-              <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
+              <Button type="submit" className="w-full text-white" style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Toevoegen
               </Button>
@@ -175,7 +175,12 @@ export function LapTimesPage() {
             <Card key={date} className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-red-500" />
+                  <Clock className="w-5 h-5" style={{ 
+                    background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }} />
                   Race {date}
                 </CardTitle>
               </CardHeader>

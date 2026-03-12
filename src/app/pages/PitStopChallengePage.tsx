@@ -115,7 +115,12 @@ export function PitStopChallengePage() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardDescription className="text-slate-400">Totaal Pogingen</CardDescription>
-              <Zap className="w-5 h-5 text-red-400" />
+              <Zap className="w-5 h-5" style={{ 
+                background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }} />
             </div>
           </CardHeader>
           <CardContent>
@@ -125,7 +130,7 @@ export function PitStopChallengePage() {
       </div>
 
       {/* Timer Section */}
-      <Card className="bg-gradient-to-br from-red-600 to-red-700 border-0">
+      <Card className="bg-gradient-to-br from-[#d35481] to-[#eab75b] border-0">
         <CardContent className="pt-6">
           <div className="text-center space-y-6">
             <Timer className="w-16 h-16 text-white mx-auto" />
@@ -137,7 +142,8 @@ export function PitStopChallengePage() {
                 <Button
                   onClick={handleStart}
                   size="lg"
-                  className="bg-white text-red-600 hover:bg-slate-100"
+                  className="bg-white hover:bg-slate-100"
+                  style={{ color: '#d35481' }}
                 >
                   <Play className="w-5 h-5 mr-2" />
                   Start
@@ -146,7 +152,8 @@ export function PitStopChallengePage() {
                 <Button
                   onClick={handleStop}
                   size="lg"
-                  className="bg-white text-red-600 hover:bg-slate-100"
+                  className="bg-white hover:bg-slate-100"
+                  style={{ color: '#d35481' }}
                 >
                   <Square className="w-5 h-5 mr-2" />
                   Stop
@@ -191,7 +198,7 @@ export function PitStopChallengePage() {
                 />
               </div>
             </div>
-            <Button onClick={handleSave} className="w-full mt-4 bg-red-600 hover:bg-red-700">
+            <Button onClick={handleSave} className="w-full mt-4 text-white" style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}>
               Opslaan
             </Button>
           </CardContent>

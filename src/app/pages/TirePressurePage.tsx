@@ -161,7 +161,7 @@ export function TirePressurePage() {
                   {/* Front Tires */}
                   <div className="grid grid-cols-2 gap-20 mb-20">
                     <div className="space-y-2">
-                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2 border-red-600">
+                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2" style={{ borderColor: '#d35481' }}>
                         <div className="text-center">
                           <div className="text-xs text-slate-400 mb-1">Links Voor</div>
                           <Input
@@ -177,7 +177,7 @@ export function TirePressurePage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2 border-red-600">
+                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2" style={{ borderColor: '#d35481' }}>
                         <div className="text-center">
                           <div className="text-xs text-slate-400 mb-1">Rechts Voor</div>
                           <Input
@@ -200,7 +200,7 @@ export function TirePressurePage() {
                   {/* Rear Tires */}
                   <div className="grid grid-cols-2 gap-20">
                     <div className="space-y-2">
-                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2 border-red-600">
+                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2" style={{ borderColor: '#d35481' }}>
                         <div className="text-center">
                           <div className="text-xs text-slate-400 mb-1">Links Achter</div>
                           <Input
@@ -216,7 +216,7 @@ export function TirePressurePage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2 border-red-600">
+                      <div className="bg-slate-900 rounded-lg p-1 h-24 flex items-center justify-center border-2" style={{ borderColor: '#d35481' }}>
                         <div className="text-center">
                           <div className="text-xs text-slate-400 mb-1">Rechts Achter</div>
                           <Input
@@ -234,7 +234,7 @@ export function TirePressurePage() {
                   </div>
                 </div>
 
-                <Button onClick={handleSave} className="w-full mt-4 bg-red-600 hover:bg-red-700">
+                <Button onClick={handleSave} className="w-full mt-4 text-white" style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}>
                   <Save className="w-4 h-4 mr-2" />
                   Opslaan
                 </Button>

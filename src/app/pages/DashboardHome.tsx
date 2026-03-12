@@ -7,7 +7,7 @@ export function DashboardHome() {
     { label: "Circuits", value: "3", icon: Map, color: "text-blue-400" },
     { label: "Totaal Races", value: "12", icon: Clock, color: "text-green-400" },
     { label: "Best Laptime", value: "42.3s", icon: TrendingUp, color: "text-yellow-400" },
-    { label: "Pitstops", value: "24", icon: Zap, color: "text-red-400" },
+    { label: "Pitstops", value: "24", icon: Zap, color: "text-[#d35481]" },
   ];
 
   const recentRaces = [
@@ -59,7 +59,7 @@ export function DashboardHome() {
                 className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-red-600 rounded">
+                  <div className="p-2 rounded" style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}>
                     <Map className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -92,11 +92,11 @@ export function DashboardHome() {
         </Link>
 
         <Link to="/dashboard/pitstop-challenge">
-          <Card className="bg-gradient-to-br from-red-600 to-red-700 border-0 hover:from-red-500 hover:to-red-600 transition-all cursor-pointer">
+          <Card className="bg-gradient-to-br from-[#d35481] to-[#eab75b] border-0 hover:from-[#eab75b] hover:to-[#d35481] transition-all cursor-pointer">
             <CardContent className="pt-6">
               <Zap className="w-12 h-12 text-white mb-4" />
               <CardTitle className="text-white mb-2">Pitstop Challenge</CardTitle>
-              <CardDescription className="text-red-100">
+              <CardDescription className="text-white/80">
                 Meet je pitstop tijden
               </CardDescription>
             </CardContent>

@@ -70,7 +70,7 @@ export function AgendaPage() {
   const getEventColor = (type: string) => {
     switch (type) {
       case "race":
-        return "bg-red-600";
+        return "bg-gradient-to-r from-[#d35481] to-[#eab75b]";
       case "qualifying":
         return "bg-yellow-600";
       case "practice":
@@ -177,7 +177,7 @@ export function AgendaPage() {
                 </select>
               </div>
             </div>
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
+            <Button type="submit" className="w-full text-white" style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}>
               <Plus className="w-4 h-4 mr-2" />
               Evenement Toevoegen
             </Button>
@@ -196,7 +196,7 @@ export function AgendaPage() {
           </Card>
         ) : (
           events.map((event) => (
-            <Card key={event.id} className="bg-slate-800 border-slate-700 hover:border-red-600/50 transition-colors">
+            <Card key={event.id} className="bg-slate-800 border-slate-700 hover:border-[#d35481]/50 transition-colors">
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -228,7 +228,7 @@ export function AgendaPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteEvent(event.id)}
-                    className="text-slate-400 hover:text-red-500"
+                    className="text-slate-400 hover:text-[#d35481]"
                   >
                     <Trash2 className="w-5 h-5" />
                   </Button>

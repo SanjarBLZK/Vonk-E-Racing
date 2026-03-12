@@ -23,10 +23,10 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
-      <header className="bg-slate-800 border-b border-red-600/30 sticky top-0 z-50">
+      <header className="bg-slate-800 border-b border-[#d35481]/30 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-600 rounded-lg">
+            <div className="p-2 rounded-lg" style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}>
               <Flag className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-2xl text-white">Kart Racing Pro</h1>
@@ -52,9 +52,10 @@ export function DashboardLayout() {
                   <div
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       active
-                        ? "bg-red-600 text-white"
+                        ? "text-white"
                         : "text-slate-300 hover:bg-slate-700 hover:text-white"
                     }`}
+                    style={active ? { background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' } : {}}
                   >
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>

@@ -200,19 +200,39 @@ export function PracticeModePage() {
         <CardContent>
           <ul className="space-y-2 text-slate-300">
             <li className="flex items-start gap-2">
-              <span className="text-red-500">•</span>
+              <span style={{ 
+                background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>•</span>
               <span>Oefen eerst de bewegingen langzaam en focus op de juiste techniek</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-red-500">•</span>
+              <span style={{ 
+                background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>•</span>
               <span>Probeer een consistente tijd te halen voordat je sneller gaat</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-red-500">•</span>
+              <span style={{ 
+                background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>•</span>
               <span>Let op de volgorde: kruislings wielen vervangen (LV → RA → RV → LA)</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-red-500">•</span>
+              <span style={{ 
+                background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>•</span>
               <span>Houd je gereedschap altijd op dezelfde plek voor snelle toegang</span>
             </li>
           </ul>

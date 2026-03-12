@@ -40,7 +40,7 @@ export function CircuitsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {circuits.map((circuit) => (
           <Link key={circuit.id} to={`/dashboard/circuits/${circuit.id}`}>
-            <Card className="bg-slate-800 border-slate-700 hover:border-red-600/50 transition-all cursor-pointer overflow-hidden group">
+            <Card className="bg-slate-800 border-slate-700 hover:border-[#d35481]/50 transition-all cursor-pointer overflow-hidden group">
               <div className="h-48 overflow-hidden">
                 <img
                   src={circuit.image}
@@ -50,7 +50,12 @@ export function CircuitsPage() {
               </div>
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Map className="w-5 h-5 text-red-500" />
+                  <Map className="w-5 h-5" style={{ 
+                    background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }} />
                   {circuit.name}
                 </CardTitle>
                 <CardDescription className="text-slate-400">{circuit.location}</CardDescription>

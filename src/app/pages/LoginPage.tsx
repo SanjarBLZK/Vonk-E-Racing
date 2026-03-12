@@ -20,11 +20,11 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-red-900 p-4">
-      <Card className="w-full max-w-md bg-slate-900/80 backdrop-blur border-red-600/30">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-[#d35481] p-4">
+      <Card className="w-full max-w-md bg-slate-900/80 backdrop-blur border-[#d35481]/30">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="p-4 bg-red-600 rounded-full">
+            <div className="p-4 rounded-full" style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}>
               <Flag className="w-12 h-12 text-white" />
             </div>
           </div>
@@ -61,7 +61,8 @@ export function LoginPage() {
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
+              className="w-full text-white"
+              style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}
             >
               Inloggen
             </Button>
