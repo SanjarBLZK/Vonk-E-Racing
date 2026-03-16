@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router";
-import { Flag, Map, Clock, Gauge, Zap, Dumbbell, Calendar, LogOut } from "lucide-react";
+import { Flag, Map, Clock, Gauge, Zap, Dumbbell, Calendar, LogOut, Users } from "lucide-react";
 import { Button } from "../components/ui/button";
 
 export function DashboardLayout() {
@@ -11,6 +11,7 @@ export function DashboardLayout() {
     { path: "/dashboard/pitstop-challenge", label: "Pitstop Challenge", icon: Zap },
     { path: "/dashboard/practice", label: "Oefenmodus", icon: Dumbbell },
     { path: "/dashboard/agenda", label: "Agenda", icon: Calendar },
+    { path: "/dashboard/admin", label: "Admin Panel", icon: Users },
   ];
 
   const isActive = (path: string) => {

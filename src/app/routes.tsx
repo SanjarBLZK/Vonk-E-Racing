@@ -9,6 +9,7 @@ import { TirePressurePage } from "./pages/TirePressurePage";
 import { PitStopChallengePage } from "./pages/PitStopChallengePage";
 import { PracticeModePage } from "./pages/PracticeModePage";
 import { AgendaPage } from "./pages/AgendaPage";
+import { AdminPanelPage } from "./pages/AdminPanelPage";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: "pitstop-challenge", Component: PitStopChallengePage },
       { path: "practice", Component: PracticeModePage },
       { path: "agenda", Component: AgendaPage },
+      { path: "admin", Component: AdminPanelPage },
     ],
   },
 ]);
