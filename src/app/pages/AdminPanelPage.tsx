@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Users, Shield, Car, Wrench, Megaphone, DollarSign, Flag } from "lucide-react";
+import { supabaseAdmin } from "../../lib/supabase";
 
 interface TeamMember {
   id: string;
@@ -83,6 +84,63 @@ export function AdminPanelPage() {
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data from Supabase on component mount
+  useEffect(() => {
+    fetchTeamMembers();
+    fetchRoles();
+  }, []);
+
+  const fetchTeamMembers = async () => {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('team_members')
+        .select(`
+          id,
+          is_active,
+          users!inner(id, email, first_name, last_name),
+          roles!inner(id, role_key, name)
+        `);
+
+      if (error) {
+        console.error('Error fetching team members:', error);
+        // Fall back to mock data if Supabase fails
+        return;
+      }
+
+      const formattedMembers: TeamMember[] = data.map((member: any) => ({
+        id: member.id,
+        name: `${member.users?.first_name || ''} ${member.users?.last_name || ''}`.trim() || member.users?.email || 'Unknown',
+        email: member.users?.email || 'unknown@example.com',
+        role: member.roles?.role_key || 'unknown',
+        status: member.is_active ? 'active' : 'inactive'
+      }));
+
+      setTeamMembers(formattedMembers);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('roles')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching roles:', error);
+        return;
+      }
+
+      console.log('Roles from Supabase:', data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   const handleRoleChange = (memberId: string, newRole: string) => {
     setTeamMembers(prev => 
