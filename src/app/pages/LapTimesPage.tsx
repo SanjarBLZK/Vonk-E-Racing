@@ -182,18 +182,103 @@ export function LapTimesPage() {
     }
 
     try {
+      // Check if we're using static circuits (fallback mode)
+      const isUsingStaticCircuits = staticCircuits[circuitId] && circuit?.id === circuitId;
+      
+      if (isUsingStaticCircuits) {
+        // In fallback mode, just save to local state for now
+        const newEntry = {
+          id: Date.now().toString(),
+          race_participant_id: `temp-${newLapTime.kartNumber}`,
+          lap_number: parseInt(newLapTime.lapNumber),
+          lap_time_seconds: parseFloat(newLapTime.time),
+          sector1_time_seconds: parseFloat(newLapTime.time) * 0.35,
+          sector2_time_seconds: parseFloat(newLapTime.time) * 0.35,
+          sector3_time_seconds: parseFloat(newLapTime.time) * 0.30,
+          is_fastest_lap: false,
+          race_participants: {
+            car_number: newLapTime.kartNumber,
+            races: {
+              race_date: newLapTime.raceDate
+            }
+          }
+        };
+        
+        setLapTimes([newEntry, ...lapTimes]);
+        // Clear form
+        setNewLapTime({ raceDate: "", lapNumber: "", time: "", kartNumber: "" });
+        alert('Rondetijd succesvol opgeslagen (lokaal)!');
+        return;
+      }
+      
       // Find or create a race participant for the selected kart
       let participant = raceParticipants.find(p => p.car_number === newLapTime.kartNumber);
       
       if (!participant) {
+        // Try to get required data, with fallbacks
+        let raceId, teamId, driverId;
+        
+        try {
+          const raceResult = await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitId).limit(1).single();
+          raceId = raceResult.data?.id;
+        } catch (e) {
+          console.error('No race found, creating temporary one');
+          // Create a temporary race
+          const { data: newRace } = await supabaseAdmin.from('races').insert({
+            circuit_id: circuitId,
+            name: `${circuit?.name} Practice`,
+            race_date: new Date(newLapTime.raceDate).toISOString(),
+            race_type: 'practice',
+            weather_condition: 'Sunny',
+            temperature_celsius: 20,
+            track_condition: 'Dry',
+            status: 'completed'
+          }).select('id').single();
+          raceId = newRace?.id;
+        }
+        
+        try {
+          const teamResult = await supabaseAdmin.from('teams').select('id').limit(1).single();
+          teamId = teamResult.data?.id;
+        } catch (e) {
+          console.error('No team found, creating temporary one');
+          // Create a temporary team
+          const { data: newTeam } = await supabaseAdmin.from('teams').insert({
+            name: 'Default Team',
+            team_number: 1,
+            description: 'Temporary team for races'
+          }).select('id').single();
+          teamId = newTeam?.id;
+        }
+        
+        try {
+          const userResult = await supabaseAdmin.from('users').select('id').limit(1).single();
+          driverId = userResult.data?.id;
+        } catch (e) {
+          console.error('No user found, creating temporary one');
+          // Create a temporary user
+          const { data: newUser } = await supabaseAdmin.from('users').insert({
+            email: `driver${newLapTime.kartNumber}@racing.com`,
+            username: `driver${newLapTime.kartNumber}`,
+            password_hash: 'temp_hash',
+            first_name: 'Driver',
+            last_name: newLapTime.kartNumber
+          }).select('id').single();
+          driverId = newUser?.id;
+        }
+        
+        if (!raceId || !teamId || !driverId) {
+          throw new Error('Kon benodigde data niet aanmaken');
+        }
+        
         // Create a new race participant
         const { data: newParticipant, error: participantError } = await supabaseAdmin
           .from('race_participants')
           .insert({
-            race_id: (await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitId).limit(1).single()).data?.id,
-            team_id: (await supabaseAdmin.from('teams').select('id').limit(1).single()).data?.id,
+            race_id: raceId,
+            team_id: teamId,
             car_number: newLapTime.kartNumber,
-            driver_id: (await supabaseAdmin.from('users').select('id').limit(1).single()).data?.id,
+            driver_id: driverId,
             status: 'active'
           })
           .select()
@@ -254,7 +339,7 @@ export function LapTimesPage() {
       
     } catch (error) {
       console.error('Error saving lap time:', error);
-      alert('Er is een fout opgetreden bij het opslaan');
+      alert('Er is een fout opgetreden bij het opslaan: ' + (error as Error).message);
     }
   };
 
