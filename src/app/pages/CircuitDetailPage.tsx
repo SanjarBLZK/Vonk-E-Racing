@@ -2,16 +2,98 @@ import { useParams, Link } from "react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Clock, Gauge, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
 
-const circuitData: Record<string, { name: string; location: string }> = {
-  zwolle: { name: "Zwolle", location: "Zwolle, Nederland" },
-  lelystad: { name: "Lelystad", location: "Lelystad, Nederland" },
-  venray: { name: "Venray", location: "Venray, Nederland" },
+interface Circuit {
+  id: string;
+  name: string;
+  location: string;
+  country: string;
+  length_in_meters: number;
+  number_of_corners: number;
+  fastest_lap_time: number;
+  fastest_lap_driver: string;
+  description: string;
+  image_url: string;
+}
+
+const staticCircuits: Record<string, Circuit> = {
+  zwolle: {
+    id: 'zwolle',
+    name: 'Zwolle',
+    location: 'Zwolle',
+    country: 'Nederland',
+    length_in_meters: 1200,
+    number_of_corners: 12,
+    fastest_lap_time: 42.3,
+    fastest_lap_driver: 'Max Verstappen',
+    description: 'Een technisch circuit in Zwolle',
+    image_url: 'https://via.placeholder.com/400x200?text=Zwolle'
+  },
+  lelystad: {
+    id: 'lelystad',
+    name: 'Lelystad',
+    location: 'Lelystad',
+    country: 'Nederland',
+    length_in_meters: 1100,
+    number_of_corners: 10,
+    fastest_lap_time: 41.8,
+    fastest_lap_driver: 'Lewis Hamilton',
+    description: 'Een snel circuit in Lelystad',
+    image_url: 'https://via.placeholder.com/400x200?text=Lelystad'
+  },
+  venray: {
+    id: 'venray',
+    name: 'Venray',
+    location: 'Venray',
+    country: 'Nederland',
+    length_in_meters: 1300,
+    number_of_corners: 14,
+    fastest_lap_time: 43.1,
+    fastest_lap_driver: 'Charles Leclerc',
+    description: 'Een uitdagend circuit in Venray',
+    image_url: 'https://via.placeholder.com/400x200?text=Venray'
+  }
 };
 
 export function CircuitDetailPage() {
   const { circuitId } = useParams<{ circuitId: string }>();
-  const circuit = circuitData[circuitId || ""];
+  const [circuit, setCircuit] = useState<Circuit | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!circuitId) return;
+
+    const fetchCircuit = async () => {
+      try {
+        setLoading(true);
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const foundCircuit = staticCircuits[circuitId];
+        if (foundCircuit) {
+          setCircuit(foundCircuit);
+        } else {
+          setCircuit(null);
+        }
+      } catch (err) {
+        console.error('Error fetching circuit:', err);
+        setCircuit(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCircuit();
+  }, [circuitId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white">Circuit laden...</div>
+      </div>
+    );
+  }
 
   if (!circuit) {
     return (
@@ -34,7 +116,7 @@ export function CircuitDetailPage() {
         </Link>
         <div>
           <h2 className="text-3xl text-white">{circuit.name}</h2>
-          <p className="text-slate-400">{circuit.location}</p>
+          <p className="text-slate-400">{circuit.location}, {circuit.country}</p>
         </div>
       </div>
 

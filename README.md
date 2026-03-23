@@ -8,4 +8,6 @@ The original project is available at https://www.figma.com/design/NF5b9TjU0ZCRSt
 
 Run `npm i` to install the dependencies.
 
-Run `npm run dev` to start the development server.
+Run `npm run dev` to start the development server. (localhost:5174)
+
+https://racing-app-mockup-design.vercel.app for the live version.

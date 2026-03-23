@@ -1,12 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://lyreegaeymsldxlbpfpi.supabase.co';
-
-// Get these from Supabase Dashboard > Settings > API
-const supabaseAnonKey = 'sb_publishable_eN3GWDS4BoGIiqThU3BHfg_ZQlBRdio'; // Your publishable key
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://lyreegaeymsldxlbpfpi.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_eN3GWDS4BoGIiqThU3BHfg_ZQlBRdio';
 const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5cmVlZ2FleW1zbGR4bGJwZnBpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzMxMjY2NiwiZXhwIjoyMDg4ODg4NjY2fQ.58dnuKWKLilQ5297IWM_xUHvzkDlODhe-PgaK0uY1C4';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false
+  },
+  global: {
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
+  }
+});
 
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {

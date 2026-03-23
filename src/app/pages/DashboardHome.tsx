@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Map, Clock, Gauge, Zap, Dumbbell, Calendar, TrendingUp } from "lucide-react";
+import { ConnectionTest } from "../components/ConnectionTest";
 
 export function DashboardHome() {
   const quickStats = [
@@ -22,6 +23,9 @@ export function DashboardHome() {
         <h2 className="text-3xl text-white mb-2">Dashboard</h2>
         <p className="text-slate-400">Welkom terug! Hier is een overzicht van je race prestaties.</p>
       </div>
+
+      {/* Database Connection Test */}
+      <ConnectionTest />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

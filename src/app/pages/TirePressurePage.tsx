@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -7,7 +7,20 @@ import { Label } from "../components/ui/label";
 import { ArrowLeft, Save, Thermometer } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 
-const circuitData: Record<string, { name: string }> = {
+interface Circuit {
+  id: string;
+  name: string;
+  location: string;
+  country: string;
+  length_in_meters: number;
+  number_of_corners: number;
+  fastest_lap_time: number;
+  fastest_lap_driver: string;
+  description: string;
+  image_url: string;
+}
+
+const staticCircuits: Record<string, { name: string }> = {
   zwolle: { name: "Zwolle" },
   lelystad: { name: "Lelystad" },
   venray: { name: "Venray" },
@@ -29,7 +42,8 @@ interface PitStopData {
 
 export function TirePressurePage() {
   const { circuitId } = useParams<{ circuitId: string }>();
-  const circuit = circuitData[circuitId || ""];
+  const [circuit, setCircuit] = useState<Circuit | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [selectedKart, setSelectedKart] = useState("12");
   const [selectedPitstop, setSelectedPitstop] = useState(1);
@@ -57,6 +71,32 @@ export function TirePressurePage() {
     },
   ]);
 
+  useEffect(() => {
+    if (!circuitId) return;
+
+    const fetchCircuit = async () => {
+      try {
+        setLoading(true);
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const foundCircuit = staticCircuits[circuitId];
+        if (foundCircuit) {
+          setCircuit({ id: circuitId, name: foundCircuit.name } as Circuit);
+        } else {
+          setCircuit(null);
+        }
+      } catch (err) {
+        console.error('Error fetching circuit:', err);
+        setCircuit(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCircuit();
+  }, [circuitId]);
+
   const handleSave = () => {
     const newData: PitStopData = {
       kartNumber: selectedKart,
@@ -78,8 +118,23 @@ export function TirePressurePage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white">Circuit laden...</div>
+      </div>
+    );
+  }
+
   if (!circuit) {
-    return <div className="text-white">Circuit niet gevonden</div>;
+    return (
+      <div className="text-white">
+        <p>Circuit niet gevonden</p>
+        <Link to="/dashboard/circuits">
+          <Button className="mt-4">Terug naar circuits</Button>
+        </Link>
+      </div>
+    );
   }
 
   return (

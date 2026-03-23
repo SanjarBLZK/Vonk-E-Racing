@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -6,6 +6,19 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { ArrowLeft, Plus, Trophy, Clock } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+
+interface Circuit {
+  id: string;
+  name: string;
+  location: string;
+  country: string;
+  length_in_meters: number;
+  number_of_corners: number;
+  fastest_lap_time: number;
+  fastest_lap_driver: string;
+  description: string;
+  image_url: string;
+}
 
 interface LapTime {
   id: string;
@@ -15,7 +28,7 @@ interface LapTime {
   kartNumber: string;
 }
 
-const circuitData: Record<string, { name: string }> = {
+const staticCircuits: Record<string, { name: string }> = {
   zwolle: { name: "Zwolle" },
   lelystad: { name: "Lelystad" },
   venray: { name: "Venray" },
@@ -23,7 +36,8 @@ const circuitData: Record<string, { name: string }> = {
 
 export function LapTimesPage() {
   const { circuitId } = useParams<{ circuitId: string }>();
-  const circuit = circuitData[circuitId || ""];
+  const [circuit, setCircuit] = useState<Circuit | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [lapTimes, setLapTimes] = useState<LapTime[]>([
     { id: "1", raceDate: "05-03-2026", lapNumber: 1, time: "42.3", kartNumber: "12" },
@@ -32,6 +46,32 @@ export function LapTimesPage() {
     { id: "4", raceDate: "28-02-2026", lapNumber: 1, time: "43.2", kartNumber: "8" },
     { id: "5", raceDate: "28-02-2026", lapNumber: 2, time: "42.7", kartNumber: "8" },
   ]);
+
+  useEffect(() => {
+    if (!circuitId) return;
+
+    const fetchCircuit = async () => {
+      try {
+        setLoading(true);
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const foundCircuit = staticCircuits[circuitId];
+        if (foundCircuit) {
+          setCircuit({ id: circuitId, name: foundCircuit.name } as Circuit);
+        } else {
+          setCircuit(null);
+        }
+      } catch (err) {
+        console.error('Error fetching circuit:', err);
+        setCircuit(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCircuit();
+  }, [circuitId]);
 
   const [newLapTime, setNewLapTime] = useState({
     raceDate: "",
@@ -67,8 +107,23 @@ export function LapTimesPage() {
     parseFloat(current.time) < parseFloat(best.time) ? current : best
   , lapTimes[0]);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white">Circuit laden...</div>
+      </div>
+    );
+  }
+
   if (!circuit) {
-    return <div className="text-white">Circuit niet gevonden</div>;
+    return (
+      <div className="text-white">
+        <p>Circuit niet gevonden</p>
+        <Link to="/dashboard/circuits">
+          <Button className="mt-4">Terug naar circuits</Button>
+        </Link>
+      </div>
+    );
   }
 
   return (

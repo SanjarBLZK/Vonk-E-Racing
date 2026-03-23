@@ -5,7 +5,7 @@ import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Users, Shield, Car, Wrench, Megaphone, DollarSign, Flag } from "lucide-react";
+import { Users, Shield, Car, Wrench, Megaphone, DollarSign, Flag, Loader2 } from "lucide-react";
 import { supabaseAdmin } from "../../lib/supabase";
 
 interface TeamMember {
@@ -142,37 +142,176 @@ export function AdminPanelPage() {
     }
   };
 
-  const handleRoleChange = (memberId: string, newRole: string) => {
-    setTeamMembers(prev => 
-      prev.map(member => 
-        member.id === memberId ? { ...member, role: newRole } : member
-      )
-    );
+  const handleRoleChange = async (memberId: string, newRole: string) => {
+    try {
+      // Get role ID from role_key
+      const { data: roleData, error: roleError } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('role_key', newRole)
+        .single();
+
+      if (roleError) {
+        console.error('Error fetching role:', roleError);
+        alert('Fout bij het ophalen van rol: ' + roleError.message);
+        return;
+      }
+
+      // Update team member role in Supabase
+      const { error: updateError } = await supabaseAdmin
+        .from('team_members')
+        .update({ role_id: roleData.id })
+        .eq('id', memberId);
+
+      if (updateError) {
+        console.error('Error updating role:', updateError);
+        alert('Fout bij het bijwerken van rol: ' + updateError.message);
+        return;
+      }
+
+      // Update local state
+      setTeamMembers(prev => 
+        prev.map(member => 
+          member.id === memberId ? { ...member, role: newRole } : member
+        )
+      );
+      
+    } catch (error) {
+      console.error('Error changing role:', error);
+      alert('Er is een fout opgetreden bij het wijzigen van de rol');
+    }
   };
 
-  const handleStatusToggle = (memberId: string) => {
-    setTeamMembers(prev => 
-      prev.map(member => 
-        member.id === memberId 
-          ? { ...member, status: member.status === 'active' ? 'inactive' : 'active' }
-          : member
-      )
-    );
+  const handleStatusToggle = async (memberId: string) => {
+    try {
+      // Find the current member to get the new status
+      const currentMember = teamMembers.find(m => m.id === memberId);
+      if (!currentMember) return;
+
+      const newStatus = currentMember.status === 'active' ? 'inactive' : 'active';
+      
+      // Update team member status in Supabase
+      const { error: updateError } = await supabaseAdmin
+        .from('team_members')
+        .update({ is_active: newStatus === 'active' })
+        .eq('id', memberId);
+
+      if (updateError) {
+        console.error('Error updating status:', updateError);
+        alert('Fout bij het bijwerken van status: ' + updateError.message);
+        return;
+      }
+
+      // Update local state
+      setTeamMembers(prev => 
+        prev.map(member => 
+          member.id === memberId 
+            ? { ...member, status: newStatus }
+            : member
+        )
+      );
+      
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('Er is een fout opgetreden bij het wijzigen van de status');
+    }
   };
 
-  const handleAddMember = () => {
-    if (newMemberName && newMemberEmail && newMemberRole) {
-      const newMember: TeamMember = {
-        id: Date.now().toString(),
-        name: newMemberName,
-        email: newMemberEmail,
-        role: newMemberRole,
-        status: 'active'
-      };
-      setTeamMembers(prev => [...prev, newMember]);
+  const handleAddMember = async () => {
+    if (!newMemberName || !newMemberEmail || !newMemberRole) {
+      alert('Vul alle velden in');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Split name into first and last name
+      const nameParts = newMemberName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Generate a simple username from email
+      const username = newMemberEmail.split('@')[0];
+      
+      // 1. Create new user
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          email: newMemberEmail,
+          username: username,
+          first_name: firstName,
+          last_name: lastName,
+          password_hash: 'temp_password_hash' // You might want to generate a proper password or send an email
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        console.error('Error creating user:', userError);
+        alert('Fout bij het aanmaken van gebruiker: ' + userError.message);
+        return;
+      }
+
+      // 2. Get role ID from role_key
+      const { data: roleData, error: roleError } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('role_key', newMemberRole)
+        .single();
+
+      if (roleError) {
+        console.error('Error fetching role:', roleError);
+        alert('Fout bij het ophalen van rol: ' + roleError.message);
+        return;
+      }
+
+      // 3. Create team member (using first team as default)
+      const { data: teamData, error: teamError } = await supabaseAdmin
+        .from('teams')
+        .select('id')
+        .limit(1)
+        .single();
+
+      if (teamError) {
+        console.error('Error fetching team:', teamError);
+        alert('Fout bij het ophalen van team: ' + teamError.message);
+        return;
+      }
+
+      // 4. Create team member record
+      const { data: memberData, error: memberError } = await supabaseAdmin
+        .from('team_members')
+        .insert({
+          user_id: userData.id,
+          team_id: teamData.id,
+          role_id: roleData.id,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (memberError) {
+        console.error('Error creating team member:', memberError);
+        alert('Fout bij het aanmaken van teamlid: ' + memberError.message);
+        return;
+      }
+
+      // 5. Refresh the team members list
+      await fetchTeamMembers();
+      
+      // Clear form
       setNewMemberName('');
       setNewMemberEmail('');
       setNewMemberRole('');
+      
+      alert('Teamlid succesvol toegevoegd!');
+      
+    } catch (error) {
+      console.error('Error adding member:', error);
+      alert('Er is een fout opgetreden bij het toevoegen van het teamlid');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -270,10 +409,20 @@ export function AdminPanelPage() {
             <div className="flex items-end">
               <Button 
                 onClick={handleAddMember}
+                disabled={loading}
                 className="w-full text-white"
                 style={{ background: 'linear-gradient(45deg, #d35481 0%, #eab75b 100%)' }}
               >
-                Toevoegen
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Bezig met toevoegen...
+                  </>
+                ) : (
+                  <>
+                    Toevoegen
+                  </>
+                )}
               </Button>
             </div>
           </div>
