@@ -25,7 +25,7 @@ export function CircuitsPage() {
       fastest_lap_time: 42.3,
       fastest_lap_driver: 'Max Verstappen',
       description: 'Een technisch circuit in Zwolle',
-      image_url: 'https://via.placeholder.com/400x200?text=Zwolle'
+      image_url: `https://picsum.photos/400/200?random=zwolle`
     },
     {
       id: 'lelystad',
@@ -37,7 +37,7 @@ export function CircuitsPage() {
       fastest_lap_time: 41.8,
       fastest_lap_driver: 'Lewis Hamilton',
       description: 'Een snel circuit in Lelystad',
-      image_url: 'https://via.placeholder.com/400x200?text=Lelystad'
+      image_url: `https://picsum.photos/400/200?random=lelystad`
     },
     {
       id: 'venray',
@@ -49,7 +49,7 @@ export function CircuitsPage() {
       fastest_lap_time: 43.1,
       fastest_lap_driver: 'Charles Leclerc',
       description: 'Een uitdagend circuit in Venray',
-      image_url: 'https://via.placeholder.com/400x200?text=Venray'
+      image_url: `https://picsum.photos/400/200?random=venray`
     }
   ];
 
@@ -88,8 +88,12 @@ export function CircuitsPage() {
                   src={circuit.image_url}
                   alt={circuit.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  onLoad={() => console.log(`Image loaded successfully: ${circuit.image_url}`)}
                   onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/400x200?text=' + encodeURIComponent(circuit.name);
+                    console.log(`Image failed to load: ${circuit.image_url}`);
+                    const fallbackUrl = `https://picsum.photos/400/200?random=${circuit.id}`;
+                    console.log(`Trying fallback: ${fallbackUrl}`);
+                    e.currentTarget.src = fallbackUrl;
                   }}
                 />
               </div>

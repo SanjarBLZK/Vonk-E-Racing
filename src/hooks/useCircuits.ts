@@ -31,7 +31,7 @@ export function useCircuits() {
       fastest_lap_time: 42.3,
       fastest_lap_driver: 'Max Verstappen',
       description: 'Een technisch circuit in Zwolle',
-      image_url: 'https://via.placeholder.com/400x200?text=Zwolle'
+      image_url: `https://picsum.photos/400/200?random=zwolle`
     },
     {
       id: 'lelystad',
@@ -43,7 +43,7 @@ export function useCircuits() {
       fastest_lap_time: 41.8,
       fastest_lap_driver: 'Lewis Hamilton',
       description: 'Een snel circuit in Lelystad',
-      image_url: 'https://via.placeholder.com/400x200?text=Lelystad'
+      image_url: `https://picsum.photos/400/200?random=lelystad`
     },
     {
       id: 'venray',
@@ -55,7 +55,7 @@ export function useCircuits() {
       fastest_lap_time: 43.1,
       fastest_lap_driver: 'Charles Leclerc',
       description: 'Een uitdagend circuit in Venray',
-      image_url: 'https://via.placeholder.com/400x200?text=Venray'
+      image_url: `https://picsum.photos/400/200?random=venray`
     }
   ];
 
