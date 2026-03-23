@@ -1,9 +1,15 @@
 import { Outlet, Link, useLocation } from "react-router";
 import { Flag, Map, Clock, Gauge, Zap, Dumbbell, Calendar, LogOut, Users } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { useAuth } from "../components/AuthContext";
 
 export function DashboardLayout() {
   const location = useLocation();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: Flag },
@@ -32,12 +38,14 @@ export function DashboardLayout() {
             </div>
             <h1 className="text-2xl text-white">Kart Racing Pro</h1>
           </div>
-          <Link to="/">
-            <Button variant="ghost" className="text-slate-300 hover:text-white">
-              <LogOut className="w-4 h-4 mr-2" />
-              Uitloggen
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            className="text-slate-300 hover:text-white"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Uitloggen
+          </Button>
         </div>
       </header>
 

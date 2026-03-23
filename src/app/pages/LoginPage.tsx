@@ -79,6 +79,24 @@ export function LoginPage() {
       }
 
       if (data?.user) {
+        // Also create user record in custom users table
+        const { error: userError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id,
+            email: signupEmail,
+            username: signupEmail.split('@')[0],
+            first_name: signupName.split(" ")[0],
+            last_name: signupName.split(" ").slice(1).join(" ") || "",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (userError) {
+          console.error('Error creating user record:', userError);
+          // Don't fail the signup if this fails, just log it
+        }
+
         // Check if email confirmation is required
         if (data.user.email_confirmed_at) {
           // Email automatically confirmed (dev mode)

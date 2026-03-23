@@ -10,6 +10,7 @@ import { PitStopChallengePage } from "./pages/PitStopChallengePage";
 import { PracticeModePage } from "./pages/PracticeModePage";
 import { AgendaPage } from "./pages/AgendaPage";
 import { AdminPanelPage } from "./pages/AdminPanelPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -18,7 +19,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    Component: DashboardLayout,
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, Component: DashboardHome },
       { path: "circuits", Component: CircuitsPage },
