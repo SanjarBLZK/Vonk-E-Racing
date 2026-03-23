@@ -23,9 +23,9 @@ export function CircuitsPage() {
       length_in_meters: 1200,
       number_of_corners: 12,
       fastest_lap_time: 42.3,
-      fastest_lap_driver: 'Max Verstappen',
+      fastest_lap_driver: '',
       description: 'Een technisch circuit in Zwolle',
-      image_url: 'https://via.placeholder.com/400x200?text=Zwolle'
+      image_url: `https://i.imgur.com/zZTd4lG.jpeg`
     },
     {
       id: 'lelystad',
@@ -35,9 +35,9 @@ export function CircuitsPage() {
       length_in_meters: 1100,
       number_of_corners: 10,
       fastest_lap_time: 41.8,
-      fastest_lap_driver: 'Lewis Hamilton',
+      fastest_lap_driver: '',
       description: 'Een snel circuit in Lelystad',
-      image_url: 'https://via.placeholder.com/400x200?text=Lelystad'
+      image_url: `https://imgur.com/fAQ1d9q.jpeg`
     },
     {
       id: 'venray',
@@ -47,9 +47,9 @@ export function CircuitsPage() {
       length_in_meters: 1300,
       number_of_corners: 14,
       fastest_lap_time: 43.1,
-      fastest_lap_driver: 'Charles Leclerc',
+      fastest_lap_driver: '',
       description: 'Een uitdagend circuit in Venray',
-      image_url: 'https://via.placeholder.com/400x200?text=Venray'
+      image_url: `https://imgur.com/bxM9I1s.jpg`
     }
   ];
 
@@ -88,8 +88,12 @@ export function CircuitsPage() {
                   src={circuit.image_url}
                   alt={circuit.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  onLoad={() => console.log(`Image loaded successfully: ${circuit.image_url}`)}
                   onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/400x200?text=' + encodeURIComponent(circuit.name);
+                    console.log(`Image failed to load: ${circuit.image_url}`);
+                    const fallbackUrl = `https://picsum.photos/400/200?random=${circuit.id}`;
+                    console.log(`Trying fallback: ${fallbackUrl}`);
+                    e.currentTarget.src = fallbackUrl;
                   }}
                 />
               </div>

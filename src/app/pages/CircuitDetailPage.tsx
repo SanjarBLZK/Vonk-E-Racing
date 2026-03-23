@@ -26,9 +26,9 @@ const staticCircuits: Record<string, Circuit> = {
     length_in_meters: 1200,
     number_of_corners: 12,
     fastest_lap_time: 42.3,
-    fastest_lap_driver: 'Max Verstappen',
+    fastest_lap_driver: '',
     description: 'Een technisch circuit in Zwolle',
-    image_url: 'https://via.placeholder.com/400x200?text=Zwolle'
+    image_url: `https://i.imgur.com/zZTd4lG.jpeg`
   },
   lelystad: {
     id: 'lelystad',
@@ -38,9 +38,9 @@ const staticCircuits: Record<string, Circuit> = {
     length_in_meters: 1100,
     number_of_corners: 10,
     fastest_lap_time: 41.8,
-    fastest_lap_driver: 'Lewis Hamilton',
+    fastest_lap_driver: '',
     description: 'Een snel circuit in Lelystad',
-    image_url: 'https://via.placeholder.com/400x200?text=Lelystad'
+    image_url: `https://imgur.com/fAQ1d9q.jpeg`
   },
   venray: {
     id: 'venray',
@@ -50,9 +50,9 @@ const staticCircuits: Record<string, Circuit> = {
     length_in_meters: 1300,
     number_of_corners: 14,
     fastest_lap_time: 43.1,
-    fastest_lap_driver: 'Charles Leclerc',
+    fastest_lap_driver: '',
     description: 'Een uitdagend circuit in Venray',
-    image_url: 'https://via.placeholder.com/400x200?text=Venray'
+    image_url: `https://imgur.com/bxM9I1s.jpg`
   }
 };
 
