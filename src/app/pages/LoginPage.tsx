@@ -6,7 +6,7 @@ import { Label } from "../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { Flag, Loader2 } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { supabase, supabaseAdmin } from "../../lib/supabase";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -60,15 +60,14 @@ export function LoginPage() {
         return;
       }
 
-      // Create user with Supabase Auth
-      const { data, error: authError } = await supabase.auth.signUp({
+      // For development: Use admin API to create user without email confirmation
+      const { data, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: signupEmail,
-        password: signupPassword,
-        options: {
-          data: {
-            first_name: signupName.split(" ")[0],
-            last_name: signupName.split(" ").slice(1).join(" ") || "",
-          }
+        password: signupPassword, // Use user-provided password
+        email_confirm: true, // Skip email confirmation
+        user_metadata: {
+          first_name: signupName.split(" ")[0],
+          last_name: signupName.split(" ").slice(1).join(" ") || "",
         }
       });
 
@@ -80,7 +79,7 @@ export function LoginPage() {
 
       if (data?.user) {
         // Also create user record in custom users table
-        const { error: userError } = await supabase
+        const { error: userError } = await supabaseAdmin
           .from('users')
           .insert({
             id: data.user.id,
@@ -97,18 +96,20 @@ export function LoginPage() {
           // Don't fail the signup if this fails, just log it
         }
 
-        // Check if email confirmation is required
-        if (data.user.email_confirmed_at) {
-          // Email automatically confirmed (dev mode)
-          navigate("/dashboard");
-        } else {
-          setError("Account aangemaakt! Controleer je email voor confirmatie.");
-          // Clear form
-          setShowSignup(false);
-          setSignupName("");
-          setSignupEmail("");
-          setSignupPassword("");
+        // Auto-login the user with their chosen password
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: signupEmail,
+          password: signupPassword
+        });
+
+        if (loginError) {
+          setError("Account aangemaakt maar auto-login mislukt. Probeer handmatig in te loggen.");
+          setLoading(false);
+          return;
         }
+
+        // Success!
+        navigate("/dashboard");
       }
     } catch (err) {
       setError("Er is een onverwachte fout opgetreden");
@@ -228,7 +229,7 @@ export function LoginPage() {
                   type="password"
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
-                  placeholder="Minimaal 6 karakters"
+                  placeholder="Kies een wachtwoord"
                   className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                   disabled={loading}
                 />
