@@ -5,8 +5,9 @@ import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { Alert, AlertDescription } from "../components/ui/alert";
 import { Users, Shield, Car, Wrench, Megaphone, DollarSign, Flag, Loader2 } from "lucide-react";
-import { supabaseAdmin } from "../../lib/supabase";
+import { supabaseAdmin, supabase } from "../../lib/supabase";
 
 interface TeamMember {
   id: string;
@@ -231,25 +232,28 @@ export function AdminPanelPage() {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
       
-      // Generate a simple username from email
-      const username = newMemberEmail.split('@')[0];
+      // Generate a temporary secure password
+      const tempPassword = Math.random().toString(36).slice(-12);
       
-      // 1. Create new user
-      const { data: userData, error: userError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          email: newMemberEmail,
-          username: username,
+      // 1. Create user with Supabase Auth (automatic password hashing)
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: newMemberEmail,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
           first_name: firstName,
-          last_name: lastName,
-          password_hash: 'temp_password_hash' // You might want to generate a proper password or send an email
-        })
-        .select()
-        .single();
+          last_name: lastName
+        }
+      });
 
-      if (userError) {
-        console.error('Error creating user:', userError);
-        alert('Fout bij het aanmaken van gebruiker: ' + userError.message);
+      if (authError) {
+        console.error('Error creating auth user:', authError);
+        alert('Fout bij het aanmaken van gebruiker: ' + authError.message);
+        return;
+      }
+
+      if (!authData.user) {
+        alert('Fout: Kan gebruiker niet aanmaken');
         return;
       }
 
@@ -283,7 +287,7 @@ export function AdminPanelPage() {
       const { data: memberData, error: memberError } = await supabaseAdmin
         .from('team_members')
         .insert({
-          user_id: userData.id,
+          user_id: authData.user.id,
           team_id: teamData.id,
           role_id: roleData.id,
           is_active: true
@@ -305,7 +309,7 @@ export function AdminPanelPage() {
       setNewMemberEmail('');
       setNewMemberRole('');
       
-      alert('Teamlid succesvol toegevoegd!');
+      alert(`Teamlid succesvol toegevoegd!\n\nTijdelijk wachtwoord: ${tempPassword}\n\nZorg dat het teamlid dit wachtwoord wijzigt bij eerste inlog.`);
       
     } catch (error) {
       console.error('Error adding member:', error);
