@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { ArrowLeft, Plus, Trophy, Clock } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+import { supabaseAdmin } from "../../lib/supabase";
 
 interface Circuit {
   id: string;
@@ -20,58 +21,38 @@ interface Circuit {
   image_url: string;
 }
 
-interface LapTime {
+interface LapTimeData {
   id: string;
-  raceDate: string;
-  lapNumber: number;
-  time: string;
-  kartNumber: string;
+  race_participant_id: string;
+  lap_number: number;
+  lap_time_seconds: number;
+  sector1_time_seconds: number;
+  sector2_time_seconds: number;
+  sector3_time_seconds: number;
+  is_fastest_lap: boolean;
+  race_participants: {
+    car_number: string;
+    races: {
+      race_date: string;
+    };
+  };
 }
 
-const staticCircuits: Record<string, { name: string }> = {
-  zwolle: { name: "Zwolle" },
-  lelystad: { name: "Lelystad" },
-  venray: { name: "Venray" },
-};
+interface RaceParticipant {
+  id: string;
+  race_id: string;
+  team_id: string;
+  car_number: string;
+  driver_id: string;
+  status: string;
+}
 
 export function LapTimesPage() {
   const { circuitId } = useParams<{ circuitId: string }>();
   const [circuit, setCircuit] = useState<Circuit | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const [lapTimes, setLapTimes] = useState<LapTime[]>([
-    { id: "1", raceDate: "05-03-2026", lapNumber: 1, time: "42.3", kartNumber: "12" },
-    { id: "2", raceDate: "05-03-2026", lapNumber: 2, time: "41.8", kartNumber: "12" },
-    { id: "3", raceDate: "05-03-2026", lapNumber: 3, time: "42.1", kartNumber: "12" },
-    { id: "4", raceDate: "28-02-2026", lapNumber: 1, time: "43.2", kartNumber: "8" },
-    { id: "5", raceDate: "28-02-2026", lapNumber: 2, time: "42.7", kartNumber: "8" },
-  ]);
-
-  useEffect(() => {
-    if (!circuitId) return;
-
-    const fetchCircuit = async () => {
-      try {
-        setLoading(true);
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        const foundCircuit = staticCircuits[circuitId];
-        if (foundCircuit) {
-          setCircuit({ id: circuitId, name: foundCircuit.name } as Circuit);
-        } else {
-          setCircuit(null);
-        }
-      } catch (err) {
-        console.error('Error fetching circuit:', err);
-        setCircuit(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCircuit();
-  }, [circuitId]);
+  const [lapTimes, setLapTimes] = useState<LapTimeData[]>([]);
+  const [raceParticipants, setRaceParticipants] = useState<RaceParticipant[]>([]);
 
   const [newLapTime, setNewLapTime] = useState({
     raceDate: "",
@@ -80,32 +61,170 @@ export function LapTimesPage() {
     kartNumber: "",
   });
 
-  const handleAddLapTime = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!circuitId) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch circuit data
+        const { data: circuitData, error: circuitError } = await supabaseAdmin
+          .from('circuits')
+          .select('*')
+          .eq('id', circuitId)
+          .single();
+
+        if (circuitError) {
+          console.error('Error fetching circuit:', circuitError);
+          setCircuit(null);
+          return;
+        }
+
+        setCircuit(circuitData);
+
+        // Fetch lap times data for this circuit
+        const { data: lapData, error: lapError } = await supabaseAdmin
+          .from('lap_times')
+          .select(`
+            *,
+            race_participants!inner(
+              car_number,
+              races!inner(circuit_id, race_date)
+            )
+          `)
+          .eq('race_participants.races.circuit_id', circuitId)
+          .order('race_participants.races.race_date', { ascending: false })
+          .order('lap_number', { ascending: true });
+
+        if (lapError) {
+          console.error('Error fetching lap times:', lapError);
+        } else {
+          setLapTimes(lapData || []);
+        }
+
+        // Fetch race participants for this circuit
+        const { data: participantsData, error: participantsError } = await supabaseAdmin
+          .from('race_participants')
+          .select(`
+            *,
+            races!inner(circuit_id)
+          `)
+          .eq('races.circuit_id', circuitId);
+
+        if (participantsError) {
+          console.error('Error fetching race participants:', participantsError);
+        } else {
+          setRaceParticipants(participantsData || []);
+        }
+
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setCircuit(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [circuitId]);
+
+  const handleAddLapTime = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newLapTime.raceDate && newLapTime.lapNumber && newLapTime.time && newLapTime.kartNumber) {
-      const newLap: LapTime = {
-        id: Date.now().toString(),
-        raceDate: newLapTime.raceDate,
-        lapNumber: parseInt(newLapTime.lapNumber),
-        time: newLapTime.time,
-        kartNumber: newLapTime.kartNumber,
+    if (!newLapTime.raceDate || !newLapTime.lapNumber || !newLapTime.time || !newLapTime.kartNumber) {
+      alert('Vul alle velden in');
+      return;
+    }
+
+    try {
+      // Find or create a race participant for the selected kart
+      let participant = raceParticipants.find(p => p.car_number === newLapTime.kartNumber);
+      
+      if (!participant) {
+        // Create a new race participant
+        const { data: newParticipant, error: participantError } = await supabaseAdmin
+          .from('race_participants')
+          .insert({
+            race_id: (await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitId).limit(1).single()).data?.id,
+            team_id: (await supabaseAdmin.from('teams').select('id').limit(1).single()).data?.id,
+            car_number: newLapTime.kartNumber,
+            driver_id: (await supabaseAdmin.from('users').select('id').limit(1).single()).data?.id,
+            status: 'active'
+          })
+          .select()
+          .single();
+
+        if (participantError) {
+          console.error('Error creating race participant:', participantError);
+          alert('Fout bij het aanmaken van race deelnemer');
+          return;
+        }
+
+        participant = newParticipant;
+      }
+
+      // Insert lap time data
+      const lapTimeSeconds = parseFloat(newLapTime.time);
+      const { error: lapError } = await supabaseAdmin
+        .from('lap_times')
+        .insert({
+          race_participant_id: participant.id,
+          lap_number: parseInt(newLapTime.lapNumber),
+          lap_time_seconds: lapTimeSeconds,
+          sector1_time_seconds: lapTimeSeconds * 0.35, // Estimate sector times
+          sector2_time_seconds: lapTimeSeconds * 0.35,
+          sector3_time_seconds: lapTimeSeconds * 0.30,
+          is_fastest_lap: false // Will be updated later if needed
+        });
+
+      if (lapError) {
+        console.error('Error saving lap time:', lapError);
+        alert('Fout bij het opslaan van rondetijd');
+        return;
+      }
+
+      // Refresh data
+      const fetchData = async () => {
+        const { data: lapData } = await supabaseAdmin
+          .from('lap_times')
+          .select(`
+            *,
+            race_participants!inner(
+              car_number,
+              races!inner(circuit_id, race_date)
+            )
+          `)
+          .eq('race_participants.races.circuit_id', circuitId)
+          .order('race_participants.races.race_date', { ascending: false })
+          .order('lap_number', { ascending: true });
+
+        setLapTimes(lapData || []);
       };
-      setLapTimes([newLap, ...lapTimes]);
+
+      await fetchData();
+      
+      // Clear form
       setNewLapTime({ raceDate: "", lapNumber: "", time: "", kartNumber: "" });
+      alert('Rondetijd succesvol opgeslagen!');
+      
+    } catch (error) {
+      console.error('Error saving lap time:', error);
+      alert('Er is een fout opgetreden bij het opslaan');
     }
   };
 
   const groupedByDate = lapTimes.reduce((acc, lap) => {
-    if (!acc[lap.raceDate]) {
-      acc[lap.raceDate] = [];
+    const raceDate = new Date(lap.race_participants.races.race_date).toLocaleDateString('nl-NL');
+    if (!acc[raceDate]) {
+      acc[raceDate] = [];
     }
-    acc[lap.raceDate].push(lap);
+    acc[raceDate].push(lap);
     return acc;
-  }, {} as Record<string, LapTime[]>);
+  }, {} as Record<string, LapTimeData[]>);
 
-  const bestLap = lapTimes.reduce((best, current) => 
-    parseFloat(current.time) < parseFloat(best.time) ? current : best
-  , lapTimes[0]);
+  const bestLap = lapTimes.length > 0 ? lapTimes.reduce((best, current) => 
+    current.lap_time_seconds < best.lap_time_seconds ? current : best
+  ) : null;
 
   if (loading) {
     return (
@@ -148,9 +267,9 @@ export function LapTimesPage() {
               <Trophy className="w-12 h-12 text-white" />
               <div>
                 <div className="text-yellow-100 text-sm">Snelste Rondetijd</div>
-                <div className="text-white text-3xl">{bestLap.time}s</div>
+                <div className="text-white text-3xl">{bestLap.lap_time_seconds}s</div>
                 <div className="text-yellow-100 text-sm">
-                  {bestLap.raceDate} - Ronde {bestLap.lapNumber} - Kart #{bestLap.kartNumber}
+                  {new Date(bestLap.race_participants.races.race_date).toLocaleDateString('nl-NL')} - Ronde {bestLap.lap_number} - Kart #{bestLap.race_participants.car_number}
                 </div>
               </div>
             </div>
@@ -242,7 +361,7 @@ export function LapTimesPage() {
               <CardContent>
                 <div className="space-y-2">
                   {laps
-                    .sort((a, b) => a.lapNumber - b.lapNumber)
+                    .sort((a, b) => a.lap_number - b.lap_number)
                     .map((lap) => (
                       <div
                         key={lap.id}
@@ -250,17 +369,31 @@ export function LapTimesPage() {
                       >
                         <div className="flex items-center gap-4">
                           <Badge variant="outline" className="text-white border-slate-600">
-                            Ronde {lap.lapNumber}
+                            Ronde {lap.lap_number}
                           </Badge>
-                          <span className="text-slate-400">Kart #{lap.kartNumber}</span>
+                          <span className="text-slate-400">Kart #{lap.race_participants.car_number}</span>
                         </div>
-                        <div className="text-xl text-green-400">{lap.time}s</div>
+                        <div className="text-xl text-green-400">{lap.lap_time_seconds}s</div>
                       </div>
                     ))}
+                  {laps.length === 0 && (
+                    <div className="text-center text-slate-400 py-4">
+                      Geen rondetijden beschikbaar voor deze race.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
+        {Object.keys(groupedByDate).length === 0 && (
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="text-center py-8">
+              <div className="text-slate-400">
+                Nog geen rondetijden beschikbaar. Voeg de eerste rondetijd toe.
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { ArrowLeft, Save, Thermometer } from "lucide-react";
 import { Badge } from "../components/ui/badge";
+import { supabaseAdmin } from "../../lib/supabase";
 
 interface Circuit {
   id: string;
@@ -20,101 +21,186 @@ interface Circuit {
   image_url: string;
 }
 
-const staticCircuits: Record<string, { name: string }> = {
-  zwolle: { name: "Zwolle" },
-  lelystad: { name: "Lelystad" },
-  venray: { name: "Venray" },
-};
-
-interface TirePressure {
-  frontLeft: string;
-  frontRight: string;
-  rearLeft: string;
-  rearRight: string;
+interface TirePressureData {
+  id: string;
+  race_participant_id: string;
+  measurement_time: string;
+  front_left_psi: number;
+  front_right_psi: number;
+  rear_left_psi: number;
+  rear_right_psi: number;
+  tire_temperature_celsius: number;
+  notes: string;
+  race_participants: {
+    car_number: string;
+  };
 }
 
-interface PitStopData {
-  kartNumber: string;
-  pitstopNumber: number;
-  temperature: string;
-  pressure: TirePressure;
+interface RaceParticipant {
+  id: string;
+  race_id: string;
+  team_id: string;
+  car_number: string;
+  driver_id: string;
+  status: string;
 }
 
 export function TirePressurePage() {
   const { circuitId } = useParams<{ circuitId: string }>();
   const [circuit, setCircuit] = useState<Circuit | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tirePressureData, setTirePressureData] = useState<TirePressureData[]>([]);
+  const [raceParticipants, setRaceParticipants] = useState<RaceParticipant[]>([]);
 
   const [selectedKart, setSelectedKart] = useState("12");
-  const [selectedPitstop, setSelectedPitstop] = useState(1);
   const [temperature, setTemperature] = useState("22");
   
-  const [tirePressure, setTirePressure] = useState<TirePressure>({
+  const [tirePressure, setTirePressure] = useState({
     frontLeft: "0.8",
-    frontRight: "0.8",
+    frontRight: "0.8", 
     rearLeft: "0.9",
     rearRight: "0.9",
   });
 
-  const [savedData, setSavedData] = useState<PitStopData[]>([
-    {
-      kartNumber: "12",
-      pitstopNumber: 1,
-      temperature: "22",
-      pressure: { frontLeft: "0.8", frontRight: "0.8", rearLeft: "0.9", rearRight: "0.9" },
-    },
-    {
-      kartNumber: "8",
-      pitstopNumber: 1,
-      temperature: "24",
-      pressure: { frontLeft: "0.75", frontRight: "0.75", rearLeft: "0.85", rearRight: "0.85" },
-    },
-  ]);
-
   useEffect(() => {
     if (!circuitId) return;
 
-    const fetchCircuit = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 300));
         
-        const foundCircuit = staticCircuits[circuitId];
-        if (foundCircuit) {
-          setCircuit({ id: circuitId, name: foundCircuit.name } as Circuit);
-        } else {
+        // Fetch circuit data
+        const { data: circuitData, error: circuitError } = await supabaseAdmin
+          .from('circuits')
+          .select('*')
+          .eq('id', circuitId)
+          .single();
+
+        if (circuitError) {
+          console.error('Error fetching circuit:', circuitError);
           setCircuit(null);
+          return;
         }
+
+        setCircuit(circuitData);
+
+        // Fetch tire pressure data for this circuit
+        const { data: pressureData, error: pressureError } = await supabaseAdmin
+          .from('tire_pressure')
+          .select(`
+            *,
+            race_participants!inner(
+              car_number,
+              races!inner(circuit_id)
+            )
+          `)
+          .eq('race_participants.races.circuit_id', circuitId)
+          .order('measurement_time', { ascending: false });
+
+        if (pressureError) {
+          console.error('Error fetching tire pressure data:', pressureError);
+        } else {
+          setTirePressureData(pressureData || []);
+        }
+
+        // Fetch race participants for this circuit
+        const { data: participantsData, error: participantsError } = await supabaseAdmin
+          .from('race_participants')
+          .select(`
+            *,
+            races!inner(circuit_id)
+          `)
+          .eq('races.circuit_id', circuitId);
+
+        if (participantsError) {
+          console.error('Error fetching race participants:', participantsError);
+        } else {
+          setRaceParticipants(participantsData || []);
+        }
+
       } catch (err) {
-        console.error('Error fetching circuit:', err);
+        console.error('Error fetching data:', err);
         setCircuit(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCircuit();
+    fetchData();
   }, [circuitId]);
 
-  const handleSave = () => {
-    const newData: PitStopData = {
-      kartNumber: selectedKart,
-      pitstopNumber: selectedPitstop,
-      temperature,
-      pressure: { ...tirePressure },
-    };
-    
-    const existingIndex = savedData.findIndex(
-      d => d.kartNumber === selectedKart && d.pitstopNumber === selectedPitstop
-    );
-    
-    if (existingIndex >= 0) {
-      const updated = [...savedData];
-      updated[existingIndex] = newData;
-      setSavedData(updated);
-    } else {
-      setSavedData([...savedData, newData]);
+  const handleSave = async () => {
+    try {
+      // Find or create a race participant for the selected kart
+      let participant = raceParticipants.find(p => p.car_number === selectedKart);
+      
+      if (!participant) {
+        // Create a new race participant
+        const { data: newParticipant, error: participantError } = await supabaseAdmin
+          .from('race_participants')
+          .insert({
+            race_id: (await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitId).limit(1).single()).data?.id,
+            team_id: (await supabaseAdmin.from('teams').select('id').limit(1).single()).data?.id,
+            car_number: selectedKart,
+            driver_id: (await supabaseAdmin.from('users').select('id').limit(1).single()).data?.id,
+            status: 'active'
+          })
+          .select()
+          .single();
+
+        if (participantError) {
+          console.error('Error creating race participant:', participantError);
+          alert('Fout bij het aanmaken van race deelnemer');
+          return;
+        }
+
+        participant = newParticipant;
+      }
+
+      // Insert tire pressure data
+      const { error: pressureError } = await supabaseAdmin
+        .from('tire_pressure')
+        .insert({
+          race_participant_id: participant.id,
+          measurement_time: new Date().toISOString(),
+          front_left_psi: parseFloat(tirePressure.frontLeft),
+          front_right_psi: parseFloat(tirePressure.frontRight),
+          rear_left_psi: parseFloat(tirePressure.rearLeft),
+          rear_right_psi: parseFloat(tirePressure.rearRight),
+          tire_temperature_celsius: parseFloat(temperature),
+          notes: `Kart ${selectedKart} - ${new Date().toLocaleDateString()}`
+        });
+
+      if (pressureError) {
+        console.error('Error saving tire pressure:', pressureError);
+        alert('Fout bij het opslaan van bandenspanning');
+        return;
+      }
+
+      // Refresh data
+      const fetchData = async () => {
+        const { data: pressureData } = await supabaseAdmin
+          .from('tire_pressure')
+          .select(`
+            *,
+            race_participants!inner(
+              car_number,
+              races!inner(circuit_id)
+            )
+          `)
+          .eq('race_participants.races.circuit_id', circuitId)
+          .order('measurement_time', { ascending: false });
+
+        setTirePressureData(pressureData || []);
+      };
+
+      await fetchData();
+      
+      alert('Bandenspanning succesvol opgeslagen!');
+      
+    } catch (error) {
+      console.error('Error saving tire pressure:', error);
+      alert('Er is een fout opgetreden bij het opslaan');
     }
   };
 
@@ -162,7 +248,7 @@ export function TirePressurePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="kartNumber" className="text-white">Kart #</Label>
                   <Input
@@ -170,16 +256,6 @@ export function TirePressurePage() {
                     type="text"
                     value={selectedKart}
                     onChange={(e) => setSelectedKart(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pitstop" className="text-white">Pitstop #</Label>
-                  <Input
-                    id="pitstop"
-                    type="number"
-                    value={selectedPitstop}
-                    onChange={(e) => setSelectedPitstop(parseInt(e.target.value))}
                     className="bg-slate-700 border-slate-600 text-white"
                   />
                 </div>
@@ -308,40 +384,50 @@ export function TirePressurePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {savedData.map((data, idx) => (
-                <div key={idx} className="p-4 bg-slate-700/50 rounded-lg space-y-3">
+              {tirePressureData.map((data: TirePressureData, idx: number) => (
+                <div key={data.id} className="p-4 bg-slate-700/50 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-white border-slate-600">
-                      Kart #{data.kartNumber}
-                    </Badge>
-                    <Badge variant="outline" className="text-white border-slate-600">
-                      Pitstop {data.pitstopNumber}
+                      Kart #{data.race_participants.car_number}
                     </Badge>
                     <div className="flex items-center gap-1 text-slate-400 text-sm ml-auto">
                       <Thermometer className="w-4 h-4" />
-                      {data.temperature}°C
+                      {data.tire_temperature_celsius}°C
                     </div>
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    {new Date(data.measurement_time).toLocaleDateString('nl-NL')} - {new Date(data.measurement_time).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="bg-slate-800 p-2 rounded">
                       <div className="text-slate-400">LV</div>
-                      <div className="text-white">{data.pressure.frontLeft} bar</div>
+                      <div className="text-white">{data.front_left_psi} bar</div>
                     </div>
                     <div className="bg-slate-800 p-2 rounded">
                       <div className="text-slate-400">RV</div>
-                      <div className="text-white">{data.pressure.frontRight} bar</div>
+                      <div className="text-white">{data.front_right_psi} bar</div>
                     </div>
                     <div className="bg-slate-800 p-2 rounded">
                       <div className="text-slate-400">LA</div>
-                      <div className="text-white">{data.pressure.rearLeft} bar</div>
+                      <div className="text-white">{data.rear_left_psi} bar</div>
                     </div>
                     <div className="bg-slate-800 p-2 rounded">
                       <div className="text-slate-400">RA</div>
-                      <div className="text-white">{data.pressure.rearRight} bar</div>
+                      <div className="text-white">{data.rear_right_psi} bar</div>
                     </div>
                   </div>
+                  {data.notes && (
+                    <div className="text-xs text-slate-400 italic">
+                      {data.notes}
+                    </div>
+                  )}
                 </div>
               ))}
+              {tirePressureData.length === 0 && (
+                <div className="text-center text-slate-400 py-8">
+                  Nog geen bandenspanning data beschikbaar. Voeg de eerste meting toe.
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
