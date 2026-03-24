@@ -295,7 +295,10 @@ export function TirePressurePage() {
 
         if (pressureError) {
           console.error('Error saving to database:', pressureError);
-          alert('Bandenspanning lokaal opgeslagen, maar database opslaan mislukt');
+          console.error('Full error details:', JSON.stringify(pressureError, null, 2));
+          console.error('Race participant ID:', participant?.id);
+          console.error('Circuit ID:', circuitId);
+          alert(`Database opslaan mislukt: ${pressureError.message || pressureError.details || 'Onbekende fout'}`);
         } else {
           console.log('Successfully saved to database');
           alert('Bandenspanning opgeslagen (lokaal + database)!');

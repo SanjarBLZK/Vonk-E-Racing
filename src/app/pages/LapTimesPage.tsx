@@ -301,7 +301,10 @@ export function LapTimesPage() {
 
         if (lapError) {
           console.error('Error saving to database:', lapError);
-          alert('Rondetijd lokaal opgeslagen, maar database opslaan mislukt');
+          console.error('Full error details:', JSON.stringify(lapError, null, 2));
+          console.error('Race participant ID:', participant?.id);
+          console.error('Circuit ID:', circuitId);
+          alert(`Database opslaan mislukt: ${lapError.message || lapError.details || 'Onbekende fout'}`);
         } else {
           console.log('Successfully saved to database');
           alert('Rondetijd opgeslagen (lokaal + database)!');
