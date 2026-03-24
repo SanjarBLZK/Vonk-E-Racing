@@ -109,6 +109,8 @@ export function TirePressurePage() {
         setLoading(true);
         
         // Fetch circuit data
+        console.log('Fetching circuit with ID:', circuitId);
+        console.log('Circuit ID type:', typeof circuitId);
         const { data: circuitData, error: circuitError } = await supabaseAdmin
           .from('circuits')
           .select('*')
@@ -206,10 +208,12 @@ export function TirePressurePage() {
           let raceId, teamId, driverId;
           
           try {
+            console.log('Fetching race for circuit ID:', circuitId);
             const raceResult = await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitId).limit(1).single();
+            console.log('Race query result:', raceResult);
             raceId = raceResult.data?.id;
           } catch (e) {
-            console.error('No race found, creating temporary one');
+            console.error('No race found, creating temporary one:', e);
             // Create a temporary race
             const { data: newRace } = await supabaseAdmin.from('races').insert({
               circuit_id: circuitId,
