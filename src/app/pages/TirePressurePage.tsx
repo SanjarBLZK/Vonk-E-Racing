@@ -100,6 +100,7 @@ export function TirePressurePage() {
 
   const [selectedKart, setSelectedKart] = useState("12");
   const [temperature, setTemperature] = useState("22");
+  const [notes, setNotes] = useState("");
   
   const [tirePressure, setTirePressure] = useState({
     frontLeft: "0.8",
@@ -209,7 +210,7 @@ export function TirePressurePage() {
         rear_left_psi: parseFloat(tirePressure.rearLeft),
         rear_right_psi: parseFloat(tirePressure.rearRight),
         tire_temperature_celsius: parseFloat(temperature),
-        notes: `Kart ${selectedKart} - ${new Date().toLocaleDateString()}`,
+        notes: notes || `Kart ${selectedKart} - ${new Date().toLocaleDateString()}`,
         race_participants: {
           car_number: selectedKart
         }
@@ -321,7 +322,7 @@ export function TirePressurePage() {
             rear_left_psi: parseFloat(tirePressure.rearLeft),
             rear_right_psi: parseFloat(tirePressure.rearRight),
             tire_temperature_celsius: parseFloat(temperature),
-            notes: `Kart ${selectedKart} - ${new Date().toLocaleDateString()}`
+            notes: notes || `Kart ${selectedKart} - ${new Date().toLocaleDateString()}`
           });
 
         if (pressureError) {
@@ -408,6 +409,17 @@ export function TirePressurePage() {
                     type="number"
                     value={temperature}
                     onChange={(e) => setTemperature(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label htmlFor="notes" className="text-white">Notities</Label>
+                  <Input
+                    id="notes"
+                    type="text"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Voeg notities toe..."
                     className="bg-slate-700 border-slate-600 text-white"
                   />
                 </div>
