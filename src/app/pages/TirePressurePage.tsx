@@ -297,7 +297,7 @@ export function TirePressurePage() {
               team_id: teamId,
               car_number: selectedKart,
               driver_id: driverId,
-              status: 'registered'
+              status: 'finished'
             })
             .select()
             .single();
