@@ -23,7 +23,7 @@ interface Circuit {
 
 const staticCircuits: Record<string, Circuit> = {
   zwolle: {
-    id: 'zwolle',
+    id: '550e8400-e29b-41d4-a716-446655440001',
     name: 'Zwolle',
     location: 'Zwolle',
     country: 'Nederland',
@@ -35,7 +35,7 @@ const staticCircuits: Record<string, Circuit> = {
     image_url: 'https://i.imgur.com/zZTd4lG.jpeg'
   },
   lelystad: {
-    id: 'lelystad',
+    id: '550e8400-e29b-41d4-a716-446655440002',
     name: 'Lelystad',
     location: 'Lelystad',
     country: 'Nederland',
@@ -47,7 +47,7 @@ const staticCircuits: Record<string, Circuit> = {
     image_url: 'https://imgur.com/fAQ1d9q.jpeg'
   },
   venray: {
-    id: 'venray',
+    id: '550e8400-e29b-41d4-a716-446655440003',
     name: 'Venray',
     location: 'Venray',
     country: 'Nederland',
@@ -58,6 +58,13 @@ const staticCircuits: Record<string, Circuit> = {
     description: 'Een uitdagend circuit in Venray',
     image_url: 'https://imgur.com/bxM9I1s.jpg'
   }
+};
+
+// Mapping from URL names to UUIDs
+const circuitIdToUuid: Record<string, string> = {
+  zwolle: '550e8400-e29b-41d4-a716-446655440001',
+  lelystad: '550e8400-e29b-41d4-a716-446655440002',
+  venray: '550e8400-e29b-41d4-a716-446655440003'
 };
 
 interface LapTimeData {
@@ -108,10 +115,18 @@ export function LapTimesPage() {
         setLoading(true);
         
         // Fetch circuit data
+        const circuitUuid = circuitIdToUuid[circuitId];
+        
+        if (!circuitUuid) {
+          console.error('Unknown circuit ID:', circuitId);
+          setCircuit(null);
+          return;
+        }
+        
         const { data: circuitData, error: circuitError } = await supabaseAdmin
           .from('circuits')
           .select('*')
-          .eq('id', circuitId)
+          .eq('id', circuitUuid)
           .single();
 
         if (circuitError) {
@@ -138,7 +153,7 @@ export function LapTimesPage() {
               races!inner(circuit_id, race_date)
             )
           `)
-          .eq('race_participants.races.circuit_id', circuitId)
+          .eq('race_participants.races.circuit_id', circuitUuid)
           .order('race_participants.races.race_date', { ascending: false })
           .order('lap_number', { ascending: true });
 
@@ -155,7 +170,7 @@ export function LapTimesPage() {
             *,
             races!inner(circuit_id)
           `)
-          .eq('races.circuit_id', circuitId);
+          .eq('races.circuit_id', circuitUuid);
 
         if (participantsError) {
           console.error('Error fetching race participants:', participantsError);
@@ -205,6 +220,14 @@ export function LapTimesPage() {
       // Try to save to database (even in fallback mode)
       try {
         // Find or create a race participant for the selected kart
+        const circuitUuid = circuitIdToUuid[circuitId];
+        
+        if (!circuitUuid) {
+          console.error('Unknown circuit ID:', circuitId);
+          alert('Onbekend circuit');
+          return;
+        }
+        
         let participant = raceParticipants.find(p => p.car_number === newLapTime.kartNumber);
         
         if (!participant) {
@@ -212,13 +235,13 @@ export function LapTimesPage() {
           let raceId, teamId, driverId;
           
           try {
-            const raceResult = await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitId).limit(1).single();
+            const raceResult = await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitUuid).limit(1).single();
             raceId = raceResult.data?.id;
           } catch (e) {
             console.error('No race found, creating temporary one');
             // Create a temporary race
             const { data: newRace } = await supabaseAdmin.from('races').insert({
-              circuit_id: circuitId,
+              circuit_id: circuitUuid,
               name: `${circuit?.name} Practice`,
               race_date: new Date(newLapTime.raceDate).toISOString(),
               race_type: 'practice',

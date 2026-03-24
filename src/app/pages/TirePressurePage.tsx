@@ -23,7 +23,7 @@ interface Circuit {
 
 const staticCircuits: Record<string, Circuit> = {
   zwolle: {
-    id: 'zwolle',
+    id: '550e8400-e29b-41d4-a716-446655440001',
     name: 'Zwolle',
     location: 'Zwolle',
     country: 'Nederland',
@@ -35,7 +35,7 @@ const staticCircuits: Record<string, Circuit> = {
     image_url: 'https://i.imgur.com/zZTd4lG.jpeg'
   },
   lelystad: {
-    id: 'lelystad',
+    id: '550e8400-e29b-41d4-a716-446655440002',
     name: 'Lelystad',
     location: 'Lelystad',
     country: 'Nederland',
@@ -47,7 +47,7 @@ const staticCircuits: Record<string, Circuit> = {
     image_url: 'https://imgur.com/fAQ1d9q.jpeg'
   },
   venray: {
-    id: 'venray',
+    id: '550e8400-e29b-41d4-a716-446655440003',
     name: 'Venray',
     location: 'Venray',
     country: 'Nederland',
@@ -58,6 +58,13 @@ const staticCircuits: Record<string, Circuit> = {
     description: 'Een uitdagend circuit in Venray',
     image_url: 'https://imgur.com/bxM9I1s.jpg'
   }
+};
+
+// Mapping from URL names to UUIDs
+const circuitIdToUuid: Record<string, string> = {
+  zwolle: '550e8400-e29b-41d4-a716-446655440001',
+  lelystad: '550e8400-e29b-41d4-a716-446655440002',
+  venray: '550e8400-e29b-41d4-a716-446655440003'
 };
 
 interface TirePressureData {
@@ -118,10 +125,18 @@ export function TirePressurePage() {
           return;
         }
         
+        const circuitUuid = circuitIdToUuid[circuitId];
+        
+        if (!circuitUuid) {
+          console.error('Unknown circuit ID:', circuitId);
+          setCircuit(null);
+          return;
+        }
+        
         const { data: circuitData, error: circuitError } = await supabaseAdmin
           .from('circuits')
           .select('*')
-          .eq('id', circuitId.trim())
+          .eq('id', circuitUuid)
           .single();
 
         if (circuitError) {
@@ -148,7 +163,7 @@ export function TirePressurePage() {
               races!inner(circuit_id)
             )
           `)
-          .eq('race_participants.races.circuit_id', circuitId)
+          .eq('race_participants.races.circuit_id', circuitUuid)
           .order('measurement_time', { ascending: false });
 
         if (pressureError) {
@@ -164,7 +179,7 @@ export function TirePressurePage() {
             *,
             races!inner(circuit_id)
           `)
-          .eq('races.circuit_id', circuitId);
+          .eq('races.circuit_id', circuitUuid);
 
         if (participantsError) {
           console.error('Error fetching race participants:', participantsError);
@@ -205,8 +220,13 @@ export function TirePressurePage() {
       
       // Try to save to database (even in fallback mode)
       try {
-        // Check if we're using static circuits (fallback mode)
-        const isUsingStaticCircuits = staticCircuits[circuitId] && circuit?.id === circuitId;
+        const circuitUuid = circuitIdToUuid[circuitId];
+        
+        if (!circuitUuid) {
+          console.error('Unknown circuit ID:', circuitId);
+          alert('Onbekend circuit');
+          return;
+        }
         
         let participant = raceParticipants.find(p => p.car_number === selectedKart);
         
@@ -215,15 +235,15 @@ export function TirePressurePage() {
           let raceId, teamId, driverId;
           
           try {
-            console.log('Fetching race for circuit ID:', circuitId);
-            const raceResult = await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitId).limit(1).single();
+            console.log('Fetching race for circuit UUID:', circuitUuid);
+            const raceResult = await supabaseAdmin.from('races').select('id').eq('circuit_id', circuitUuid).limit(1).single();
             console.log('Race query result:', raceResult);
             raceId = raceResult.data?.id;
           } catch (e) {
             console.error('No race found, creating temporary one:', e);
             // Create a temporary race
             const { data: newRace } = await supabaseAdmin.from('races').insert({
-              circuit_id: circuitId,
+              circuit_id: circuitUuid,
               name: `${circuit?.name} Practice`,
               race_date: new Date().toISOString(),
               race_type: 'practice',
