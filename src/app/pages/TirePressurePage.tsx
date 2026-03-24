@@ -68,18 +68,14 @@ const circuitIdToUuid: Record<string, string> = {
 };
 
 interface TirePressureData {
-  id: string;
+  id?: string;
   race_participant_id: string;
-  measurement_time: string;
   front_left_psi: number;
   front_right_psi: number;
   rear_left_psi: number;
   rear_right_psi: number;
   tire_temperature_celsius: number;
   notes: string;
-  race_participants: {
-    car_number: string;
-  };
 }
 
 interface RaceParticipant {
@@ -202,18 +198,13 @@ export function TirePressurePage() {
   const handleSave = async () => {
     try {
       const newEntry = {
-        id: Date.now().toString(),
-        race_participant_id: `temp-${selectedKart}`,
-        measurement_time: new Date().toISOString(),
+        race_participant_id: selectedKart,
         front_left_psi: parseFloat(tirePressure.frontLeft),
         front_right_psi: parseFloat(tirePressure.frontRight),
         rear_left_psi: parseFloat(tirePressure.rearLeft),
         rear_right_psi: parseFloat(tirePressure.rearRight),
         tire_temperature_celsius: parseFloat(temperature),
-        notes: notes || `Kart ${selectedKart} - ${new Date().toLocaleDateString()}`,
-        race_participants: {
-          car_number: selectedKart
-        }
+        notes: notes || `Kart ${selectedKart} - ${new Date().toLocaleDateString()}`
       };
       
       // Always add to local state first
@@ -315,8 +306,7 @@ export function TirePressurePage() {
         const { error: pressureError } = await supabaseAdmin
           .from('tire_pressure')
           .insert({
-            race_participant_id: participant.id,
-            measurement_time: new Date().toISOString(),
+            race_participant_id: selectedKart,
             front_left_psi: parseFloat(tirePressure.frontLeft),
             front_right_psi: parseFloat(tirePressure.frontRight),
             rear_left_psi: parseFloat(tirePressure.rearLeft),
@@ -539,19 +529,21 @@ export function TirePressurePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {tirePressureData.map((data: TirePressureData, idx: number) => (
-                <div key={data.id} className="p-4 bg-slate-700/50 rounded-lg space-y-3">
+                <div key={data.id || `temp-${idx}`} className="p-4 bg-slate-700/50 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-white border-slate-600">
-                      Kart #{data.race_participants.car_number}
+                    <Badge variant="secondary" className="bg-blue-600 text-white">
+                      Kart #{data.race_participant_id}
                     </Badge>
                     <div className="flex items-center gap-1 text-slate-400 text-sm ml-auto">
                       <Thermometer className="w-4 h-4" />
                       {data.tire_temperature_celsius}°C
                     </div>
                   </div>
-                  <div className="text-xs text-slate-400">
-                    {new Date(data.measurement_time).toLocaleDateString('nl-NL')} - {new Date(data.measurement_time).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
-                  </div>
+                  {data.notes && (
+                    <div className="text-xs text-slate-400">
+                      Notities: {data.notes}
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="bg-slate-800 p-2 rounded">
                       <div className="text-slate-400">LV</div>
@@ -570,11 +562,6 @@ export function TirePressurePage() {
                       <div className="text-white">{data.rear_right_psi} bar</div>
                     </div>
                   </div>
-                  {data.notes && (
-                    <div className="text-xs text-slate-400 italic">
-                      {data.notes}
-                    </div>
-                  )}
                 </div>
               ))}
               {tirePressureData.length === 0 && (
