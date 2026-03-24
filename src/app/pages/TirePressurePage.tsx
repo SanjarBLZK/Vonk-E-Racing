@@ -111,10 +111,17 @@ export function TirePressurePage() {
         // Fetch circuit data
         console.log('Fetching circuit with ID:', circuitId);
         console.log('Circuit ID type:', typeof circuitId);
+        
+        if (!circuitId || typeof circuitId !== 'string') {
+          console.error('Invalid circuit ID:', circuitId);
+          setCircuit(null);
+          return;
+        }
+        
         const { data: circuitData, error: circuitError } = await supabaseAdmin
           .from('circuits')
           .select('*')
-          .eq('id', circuitId)
+          .eq('id', circuitId.trim())
           .single();
 
         if (circuitError) {

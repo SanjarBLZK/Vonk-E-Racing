@@ -49,3 +49,15 @@ ON CONFLICT (id) DO UPDATE SET
   password_hash = EXCLUDED.password_hash,
   first_name = EXCLUDED.first_name,
   last_name = EXCLUDED.last_name;
+
+-- Voeg race participants toe (nodig voor lap times en tire pressure)
+INSERT INTO race_participants (id, race_id, team_id, car_number, driver_id, status) VALUES
+('participant-zwolle-12', 'race-zwolle-1', 'team-default', '12', 'user-default', 'active'),
+('participant-lelystad-12', 'race-lelystad-1', 'team-default', '12', 'user-default', 'active'),
+('participant-venray-12', 'race-venray-1', 'team-default', '12', 'user-default', 'active')
+ON CONFLICT (id) DO UPDATE SET
+  race_id = EXCLUDED.race_id,
+  team_id = EXCLUDED.team_id,
+  car_number = EXCLUDED.car_number,
+  driver_id = EXCLUDED.driver_id,
+  status = EXCLUDED.status;
