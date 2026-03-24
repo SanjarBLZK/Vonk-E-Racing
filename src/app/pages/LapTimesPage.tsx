@@ -295,7 +295,7 @@ export function LapTimesPage() {
               team_id: teamId,
               car_number: newLapTime.kartNumber,
               driver_id: driverId,
-              status: 'active'
+              status: 'registered'
             })
             .select()
             .single();

@@ -34,7 +34,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- Voeg een team toe (nodig voor race participants)
 INSERT INTO teams (id, name, team_number, description) VALUES
-('770e8400-e29b-41d4-a716-446655440001', 'Default Team', 1, 'Standaard team voor races')
+('770e8400-e29b-41d4-a716-446655440001', 'Default Team', 999, 'Standaard team voor races')
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   team_number = EXCLUDED.team_number,
@@ -52,9 +52,9 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- Voeg race participants toe (nodig voor lap times en tire pressure)
 INSERT INTO race_participants (id, race_id, team_id, car_number, driver_id, status) VALUES
-('990e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440001', '770e8400-e29b-41d4-a716-446655440001', '12', '880e8400-e29b-41d4-a716-446655440001', 'active'),
-('990e8400-e29b-41d4-a716-446655440002', '660e8400-e29b-41d4-a716-446655440002', '770e8400-e29b-41d4-a716-446655440001', '12', '880e8400-e29b-41d4-a716-446655440001', 'active'),
-('990e8400-e29b-41d4-a716-446655440003', '660e8400-e29b-41d4-a716-446655440003', '770e8400-e29b-41d4-a716-446655440001', '12', '880e8400-e29b-41d4-a716-446655440001', 'active')
+('990e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440001', '770e8400-e29b-41d4-a716-446655440001', '12', '880e8400-e29b-41d4-a716-446655440001', 'registered'),
+('990e8400-e29b-41d4-a716-446655440002', '660e8400-e29b-41d4-a716-446655440002', '770e8400-e29b-41d4-a716-446655440001', '12', '880e8400-e29b-41d4-a716-446655440001', 'registered'),
+('990e8400-e29b-41d4-a716-446655440003', '660e8400-e29b-41d4-a716-446655440003', '770e8400-e29b-41d4-a716-446655440001', '12', '880e8400-e29b-41d4-a716-446655440001', 'registered')
 ON CONFLICT (id) DO UPDATE SET
   race_id = EXCLUDED.race_id,
   team_id = EXCLUDED.team_id,
